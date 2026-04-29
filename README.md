@@ -44,17 +44,3 @@ Verified the public-facing Web Server responses using `curl` to ensure the appli
 ## 📂 Repository Structure
 * `/images`: Architectural diagrams and terminal verification screenshots.
 * `/docs`: Technical configuration details (e.g., VPN BGP settings).
-
-## 🧠 Lessons Learned & Troubleshooting
-
-### 1. Asymmetric Routing in VPN Tunnels
-**Challenge:** Initially, the Site-to-Site VPN tunnel was "Up," but traffic from the Corporate Data Center could not reach the AWS Private Subnet.
-**Resolution:** Discovered that the Customer Gateway required specific **BGP (Border Gateway Protocol)** community strings to correctly prioritize the primary tunnel over the secondary. I adjusted the route propagation settings in the AWS Route Table to ensure the virtual private gateway (VGW) was correctly broadcasting the VPC CIDR to the on-premises peer.
-
-### 2. VPC Peering DNS Resolution
-**Challenge:** While I could ping the Partner VPC instance by IP address (`10.1.1.187`), the hostname wouldn't resolve.
-**Resolution:** I realized that VPC Peering does not automatically enable DNS resolution between VPCs. I had to modify the **Peering Connection options** to "Allow DNS resolution from acceptor/requester VPC" and ensure both VPCs had `enableDnsHostnames` and `enableDnsSupport` set to `true`.
-
-### 3. Security Group "Circular" Dependencies
-**Challenge:** The Backend EC2 instance (`10.0.2.50`) was not receiving requests from the Web tier despite a "Permit All" NACL.
-**Resolution:** This reinforced the difference between stateless NACLs and stateful Security Groups. I implemented **Security Group Nesting**—instead of allowing the Web tier's IP address, I configured the `Backend-SG` to allow all traffic where the source is the `Web-SG` ID. This is a much more scalable and secure "least-privilege" approach.
